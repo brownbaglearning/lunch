@@ -1,0 +1,120 @@
+<html>
+<h1>Factoring apart "Training" from "Testing"</h1>
+<p>
+This tutorial is a continuation of "Getting Started: A Simple Example."
+<p>
+We begin the "training" script with a "header" block 
+in which various Python and SKlearn modules and methods
+are imported, and in some cases renamed for convenience:
+<pre>
+from __future__ import print_function  # <-- this lets python2 use python3's print function
+
+import sys, time, random
+
+import numpy as np
+
+from sklearn.externals import joblib
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import SGDClassifier
+from sklearn.ensemble     import RandomForestClassifier
+from sklearn.neighbors    import KNeighborsClassifier
+from sklearn.svm          import LinearSVC
+</pre>
+Note that this time we have explicitly imported "NumPy," and renamed it "np" for convenience.
+We have also imported "joblib" from SKlearn, which will allow us to save the trained model to a named file.
+(In Python, saving an object to a file is called "pickling,"
+and the saved object often has the file extension ".pkl")
+<p>
+We also import several additional data models.
+
+<p>
+Next, as before we save the initail time,
+then initiallize a pointer to a list of training-instance attribute lists
+and a pointer to a list of training-instance labels;
+we then generate a set of 9000 training instances as in the first example:
+<pre>
+stime = time.time()
+X = []
+y = []
+for idx in range(9000):
+    val = random.randrange(0,3000)
+    X.append([val])
+    if val < 1000:
+        y.append(0)
+    elif val < 2000:
+        y.append(1)
+    else:
+        y.append(2)
+</pre>
+
+Next, we uncomment the desired classifier method and perform the fit:
+<pre>
+classifier = LogisticRegression()
+# classifier = SGDClassifier(n_iter=1000)
+# classifier = RandomForestClassifier()
+# classifier = KNeighborsClassifier(n_neighbors=5)
+# classifier = LinearSVC()
+
+classifier.fit(X,y)
+</pre>
+
+Finally, we estimate the execution time,
+and dump out the trained classifier as a "pickled" object.
+<pre>
+print("joblib.dump-ing classifier", time.time()-stime)
+joblib.dump(classifier,'ross_classifier.pkl')
+
+print("total time:",time.time()-stime)
+</pre>
+
+
+<p>
+The testing program uses a very similar "header" block:
+<pre>
+from __future__ import print_function  # <-- this lets python2 use python3's print function
+
+import sys, time, random
+
+import numpy as np
+
+from sklearn.externals import joblib
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import SGDClassifier
+from sklearn.ensemble     import RandomForestClassifier
+from sklearn.neighbors    import KNeighborsClassifier
+from sklearn.svm          import LinearSVC
+
+stime = time.time()
+</pre>
+
+We now load in the trained and classifier model from the file it was "pickled" into:
+<pre>
+classifier = joblib.load('ross_classifier.pkl') 
+</pre>
+
+The remainder of the program tests the "pickled" classifier as in the previous example,
+then prints out the estimated execution time and classification accuracy:
+<pre>
+ncorrect = 0
+nchecked = 0
+for idx in range(10):
+    nchecked += 1
+    val = random.randrange(0,3000)
+    instance    = [val]
+    instances   = [instance]
+    predictions = classifier.predict(instances)
+    prediction  = predictions[0]
+    print("PRED",val,prediction)
+    if val < 1000  and  prediction == 0:
+        ncorrect += 1
+    elif val >= 1000 and  val < 2000  and  prediction == 1:
+        ncorrect += 1
+    elif val >= 2000  and  val < 3000  and  prediction == 2:
+        ncorrect += 1
+
+print(float(ncorrect)/nchecked)    # <--- python2 must convert to float itself
+print("total time:",time.time()-stime)
+</pre>
+</html>

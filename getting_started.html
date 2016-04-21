@@ -1,0 +1,145 @@
+<h1>Getting Started: a Simple Example</h1>
+<p>This short document introduces you to creation and use of classifiers in the Python 2.7
+coding environment.  Our intent is to describe a very simple prototypical problem and
+show you how to construct a classifier to solve.it.
+The classification problem we address is intentionally trivial: <b>Given a vector
+of numbers in the range [0, 3000) (i.e., inluding 0, but less than 3000),
+classify them as follows:
+<ul>
+<li> those in the range [0,1000) are assigned to class "0";
+<li> those in the range [1000,2000) are assigned to class "1";
+<li> those in the range [2000,3000) are assigned to class "2".
+</ul>
+</b>
+
+We are going to describe the major paragraphs of a simple Python program
+to assign data to classes "0," "1," and "2" as defined above.
+
+We begin with a "header" block in which various Python and SKlearn modules and methods
+are imported, and in some cases renamed for convenience:
+<pre>
+from __future__ import print_function  # <-- this lets python2 use python3's print function
+import sys, time, random
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import SGDClassifier
+from sklearn.ensemble     import RandomForestClassifier
+from sklearn.neighbors    import KNeighborsClassifier
+from sklearn.svm          import LinearSVC
+stime = time.time()
+</pre>
+
+The above establishes our Python and SKlearn programming environment,
+including importing the Python3 printing functions so that, e.g.,
+we need not manually coerce types for printing.
+It also saves the current time so that the elapsed time may be estimated
+at the end of execution.
+
+<p>
+Because we are using NumPy and SKlearn,
+we are required to pass our training data and labels to the fitting routines
+as a pointer to a list of lists of numerically-valued attributes,
+and a pointer to a list of numerically-valued scalar labels, respectively.
+We therefore declare the training-set instances and instance-label containers
+as pointers to lists:
+<pre>
+X = []
+y = []
+</pre>
+The uppercase letter "X" is chosen as the name of the first list as a mnemonic 
+that it poimts to an array of elements representing the "independent variables"
+that form the "training instances" for the classifier.
+The rows of "X" correspond to each training instance,
+while the columns in each row contain the numerically-valued attributes for each training instance.
+Note that in our simple example, each row in X is just a list containing a single value.
+In most applications the instances will contain multiple values.
+<p>
+The lowercase letter "y" is chosen as the name of the second list as a mnemonic
+that it contains the vector of "dependent" variables;
+each row contains the numerical label that should be assigned to each training instance.
+(Again, NumPy and SKlearn force us to use  numeric labels rather than some other type.)
+
+<p>
+We now construct the training-sample data:
+<pre>
+for idx in range(9000):
+    val = random.randrange(0,3000)
+    X.append([val])
+    if val < 1000:
+        y.append(0)
+    elif val < 2000:
+        y.append(1)
+    else:
+        y.append(2)
+</pre>
+The above "for ... range(...)" loop generates the integers 0..8999,
+which will not be used, but are a convenient and "Pythonic" way of generating 9000 instances.
+"random.randrange(0,3000)" generates random integers in the interval 0..2999.
+<p>
+In most problems, each row of "X" will contain a list of many numerically-valued attributes,
+but in this "toy" example, each instance has only a single attribute, "val".
+The operation "X.append([val])" appends the single-element list "[val]" (which we sometimes call
+an <b>instance</b>) to the growing array "X".
+<p>
+Likewise, the list "y" is constructed by appending numeric scalars valued "0", "1", or "2"
+depending on which subinterval "val" falls into.
+
+<p>
+Next, we select which SKlearn classifier we are going to use,
+then perform a fit to the above-generated data:
+<pre>
+# classifier = LogisticRegression()
+# classifier = SGDClassifier(n_iter=1000)
+# classifier = RandomForestClassifier()
+# classifier = KNeighborsClassifier(n_neighbors=5)
+# classifier = LinearSVC()
+classifier = RandomForestClassifier()
+
+classifier.fit(X,y)
+</pre>
+
+(In this simple "toy" example, the classifier is selected
+by uncommenting the corresponding line of code,
+but in a more sophisticated tool, we might pass in a command-line argument
+to select the classifier using a compound "if" block, since the pointer
+to the classifier method is stored in the variable "classifier"
+using a simple assignment statement.)
+
+<p>
+Next, we test the trained classifier:
+<pre>
+ncorrect = 0
+nchecked = 0
+for idx in range(10):
+    nchecked += 1
+
+    val = random.randrange(0,3000)
+    instance    = [val]
+    instances   = [instance]
+    predictions = classifier.predict(instances)
+    prediction  = predictions[0]
+
+    print("PRED",val,prediction)
+    if val < 1000  and  prediction == 0:
+        ncorrect += 1
+    elif val >= 1000 and  val < 2000  and  prediction == 1:
+        ncorrect += 1
+    elif val >= 2000  and  val < 3000  and  prediction == 2:
+        ncorrect += 1
+
+print(float(ncorrect)/nchecked)    # <--- python2 must convert to float itself
+print("total time:",time.time()-stime)
+</pre>
+In the first section of the paragraph above, we have explicitly coded our example
+to highlight the fact that "classifier.predict()" can in principle accept a list of instances
+(which are themselves lists of values), and it returns a list of predictions.
+
+<p>
+The second section of the above paragraph compares the predictions to their expected values,
+and counts the number of correct predictions.
+
+<p>
+Finally, we print the fraction of correct predictions,
+and an estimate of the elapsed time.
+
+
